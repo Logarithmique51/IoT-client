@@ -3,7 +3,7 @@
 #include <ArduinoJson.h>
 
 const char* ssid = "Freebox44 2.4GHZ";
-const char* password = "noel2022";
+const char* password = "";
 const char* mqtt_server = "192.168.1.29";
 const int mqtt_port = 1883;
 const char* mqtt_topic = "limitlesslogic/ping";
