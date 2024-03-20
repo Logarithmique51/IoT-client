@@ -3,7 +3,11 @@
 #include <ArduinoJson.h>
 
 const char* ssid = "Freebox44 2.4GHZ";
-const char* password = "noel2022";
+const char* password = "";
+
+const char* mqtt_username = "LIMITLESSLOGIC";
+const char* mqtt_password = "AZLIMIT51100";
+
 const char* mqtt_server = "192.168.1.29";
 const int mqtt_port = 1883;
 const char* mqtt_topic = "limitlesslogic/ping";
@@ -12,7 +16,6 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 void setup_wifi() {
-
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -24,7 +27,7 @@ void setup_wifi() {
 void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
-    if (client.connect("ESP8266Client")) {
+    if (client.connect("ESP8266Client",mqtt_username,mqtt_password)) {
       client.subscribe("maison/lampe/1234");
       Serial.println("connected");
     } else {
@@ -38,6 +41,7 @@ void reconnect() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
+  delay(5000);
   Serial.print("Message reçu sur le topic: ");
   Serial.println(topic);
   Serial.print("Payload: ");
