@@ -3,12 +3,11 @@
 #include <ArduinoJson.h>
 
 const char* ssid = "Freebox44 2.4GHZ";
-const char* password = "";
+const char* password = "noel2022";
 
 const char* mqtt_username = "LIMITLESSLOGIC";
 const char* mqtt_password = "AZLIMIT51100";
 
-const char* password = "";
 const char* mqtt_server = "192.168.1.29";
 const int mqtt_port = 1883;
 const char* mqtt_topic = "limitlesslogic/ping";
@@ -28,8 +27,10 @@ void setup_wifi() {
 void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
-    if (client.connect("ESP8266Client",mqtt_username,mqtt_password)) {
-      client.subscribe("maison/lampe/1234");
+    std::string id = std::to_string(system_get_chip_id());
+    std::string topic = "maison/lampe/" + id ;
+    if (client.connect(id.c_str(),mqtt_username,mqtt_password)) {
+      client.subscribe(topic.c_str()); // Subscribe to the topic
       Serial.println("connected");
     } else {
       Serial.print("failed, rc=");
@@ -41,8 +42,18 @@ void reconnect() {
 
 }
 
+void blink(){
+  digitalWrite(LED_BUILTIN,LOW);
+  Serial.println("BLINK LOW");
+  delay(1000);
+  digitalWrite(LED_BUILTIN,HIGH);
+  Serial.println("BLINK HIGH");
+  delay(1000);
+  digitalWrite(LED_BUILTIN,LOW);
+  Serial.println("BLINK LOW");
+}
+
 void callback(char* topic, byte* payload, unsigned int length) {
-  delay(5000);
   Serial.print("Message reçu sur le topic: ");
   Serial.println(topic);
   Serial.print("Payload: ");
@@ -50,6 +61,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.print((char)payload[i]);
   }
   Serial.println();
+  blink();
 }
 
 void pingBroker(){
@@ -67,11 +79,15 @@ void pingBroker(){
 
 }
 
+
+
 void setup() {
+  pinMode(LED_BUILTIN,OUTPUT);
   Serial.begin(9600);
   setup_wifi();
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
+  blink();
 }
 
 void loop() {
@@ -79,9 +95,7 @@ void loop() {
     reconnect();
   }
   client.loop();
-  pingBroker();
-  delay(5000);
- 
+  pingBroker(); 
 }
 
 // #include <ESP8266WiFi.h>
