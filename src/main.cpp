@@ -12,6 +12,10 @@ const char* mqtt_server = "192.168.1.29";
 const int mqtt_port = 1883;
 const char* mqtt_topic = "limitlesslogic/ping";
 
+unsigned long LastMeasureTime = 0;
+unsigned long Interval = 5000; //Normally set from config stored in EEPROM
+
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -45,10 +49,10 @@ void reconnect() {
 void blink(){
   digitalWrite(LED_BUILTIN,LOW);
   Serial.println("BLINK LOW");
-  delay(1000);
+  delay(200);
   digitalWrite(LED_BUILTIN,HIGH);
   Serial.println("BLINK HIGH");
-  delay(1000);
+  delay(200);
   digitalWrite(LED_BUILTIN,LOW);
   Serial.println("BLINK LOW");
 }
@@ -60,7 +64,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
   for (int i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
   }
-  Serial.println();
   blink();
 }
 
@@ -95,7 +98,15 @@ void loop() {
     reconnect();
   }
   client.loop();
-  pingBroker(); 
+
+  unsigned long CurrentTime = millis();
+  
+  if ((CurrentTime - LastMeasureTime) >= Interval)
+  {
+    pingBroker(); 
+    LastMeasureTime = CurrentTime;
+  }
+  // delay(700);
 }
 
 // #include <ESP8266WiFi.h>
