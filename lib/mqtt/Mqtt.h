@@ -4,7 +4,7 @@
 #include <PubSubClient.h>
 
 struct TopicHandler {
-    char* topic;
+    const char* topic;
     std::function<void(byte*)> callback;
 };
 
@@ -12,7 +12,7 @@ struct TopicHandler {
 class Mqtt {
     public: 
         static void listen(IPAddress);
-        static void on(char*,std::function<void(byte *)>);
+        static void on(const char*,std::function<void(byte *)>);
         static std::vector<TopicHandler> topicListHandler;
         static void loop();
         static void ping();

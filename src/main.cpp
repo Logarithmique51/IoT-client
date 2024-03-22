@@ -12,6 +12,7 @@ WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 
 
 void handleWiFiModeChange(const WiFiEventStationModeGotIP & evt){
+  digitalWrite(D8,HIGH);
   Flare::listen();
 };
 
@@ -39,6 +40,7 @@ void readPacket(const char* packet,IPAddress senderIp){
 
   if(strcmp(packet, "admin") == 0) {
     Mqtt::listen(senderIp);
+    digitalWrite(D8,LOW);
    }else{
     Serial.println("UNKNOW");
   }
@@ -49,9 +51,16 @@ void setup_flare(){
 }
 
 void setup_mqtt(){
-  Mqtt::on("limitless/logic",[](byte* payload){
-    Serial.println("reçu");
+
+  std::string topic_base = "maison/lampe/";
+  std::string chip_id = std::to_string(system_get_chip_id());
+  topic_base.append(chip_id);
+  char* topic_base_buffer = new char[topic_base.length() + 1];
+  strcpy(topic_base_buffer,topic_base.c_str());
+  Mqtt::on(topic_base_buffer,[](byte* payload){
+    blink();
   });
+
 }
 
 void setup() {
@@ -66,6 +75,7 @@ void setup() {
 void loop() {
   Flare::loop();
   Mqtt::loop();
+  Lifecycle::loop();
 }
  
  

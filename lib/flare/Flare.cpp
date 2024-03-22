@@ -32,6 +32,7 @@ void Flare::listen()
 {
     server.beginMulticast(WiFi.localIP(), multicast_ip, multicast_port);
     Serial.println("Server multicast listen to:"+WiFi.localIP().toString());
+    digitalWrite(D8,HIGH);
     // Lifecycle::add(700,)
 }
 
