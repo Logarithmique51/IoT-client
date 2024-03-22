@@ -11,7 +11,6 @@ class Flare {
         static void onIncommingPacket(std::function<void(const char*,IPAddress)>);
         static std::function<void(const char*,IPAddress)> incomingPacketHandler;
 
-        // std::function<void (const WiFiEventStationModeGotIP &)>
     private: 
         static WiFiUDP server;
         static IPAddress multicast_ip;
@@ -19,10 +18,3 @@ class Flare {
     };
 
 #endif
-
-
-// #include <WiFiUdp.h>
-// #include <ArduinoJson.h>
-// WiFiUDP udp;
-//   IPAddress address(239, 255, 255, 3);
-//   udp.beginMulticast(WiFi.localIP(), address, 2013);
