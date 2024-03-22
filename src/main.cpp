@@ -1,6 +1,8 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
+#include <Lifecycle.h>
+#include <Flare.h>
 
 const char* ssid = "Freebox44 2.4GHZ";
 const char* password = "noel2022";
@@ -12,20 +14,25 @@ const char* mqtt_server = "192.168.1.29";
 const int mqtt_port = 1883;
 const char* mqtt_topic = "limitlesslogic/ping";
 
-unsigned long LastMeasureTime = 0;
-unsigned long Interval = 5000; //Normally set from config stored in EEPROM
-
-
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-void setup_wifi() {
-  WiFi.begin(ssid, password);
+WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.println("ATTEMPT CONNECT");
-  }
+
+void handleWiFiModeChange(const WiFiEventStationModeGotIP & evt){
+  Flare::listen();
+};
+
+void handleDisconnected(const WiFiEventStationModeDisconnected & evt){
+  Flare::stop();
+};
+
+void setup_wifi() {
+  WiFi.persistent(true);
+  WiFi.begin(ssid, password);
+  gotIpEventHandler = WiFi.onStationModeGotIP(&handleWiFiModeChange);
+  disconnectedEventHandler = WiFi.onStationModeDisconnected(&handleDisconnected);
 }
 
 void reconnect() {
@@ -35,25 +42,21 @@ void reconnect() {
     std::string topic = "maison/lampe/" + id ;
     if (client.connect(id.c_str(),mqtt_username,mqtt_password)) {
       client.subscribe(topic.c_str()); // Subscribe to the topic
-      Serial.println("connected");
     } else {
-      Serial.print("failed, rc=");
       Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
       delay(5000);
     }
   }
-
 }
 
 void blink(){
-  digitalWrite(LED_BUILTIN,LOW);
+  digitalWrite(D8,LOW);
   Serial.println("BLINK LOW");
   delay(200);
-  digitalWrite(LED_BUILTIN,HIGH);
+  digitalWrite(D8,HIGH);
   Serial.println("BLINK HIGH");
   delay(200);
-  digitalWrite(LED_BUILTIN,LOW);
+  digitalWrite(D8,LOW);
   Serial.println("BLINK LOW");
 }
 
@@ -82,36 +85,54 @@ void pingBroker(){
 
 }
 
-
-
-void setup() {
-  pinMode(LED_BUILTIN,OUTPUT);
-  Serial.begin(9600);
-  setup_wifi();
-  client.setServer(mqtt_server, mqtt_port);
-  client.setCallback(callback);
-  blink();
+void test(){
+  Serial.println("CALL EVERY 2 SEC");
 }
 
-void loop() {
-  if (!client.connected()) {
-    reconnect();
+void readPacket(const char* packet,IPAddress senderIp){
+  if(strcmp(packet, "admin") == 0) {
+    Serial.println("BRIDGE");
+    Serial.println("From: "+senderIp.toString());
+  }else{
+    Serial.println("UNKNOW");
   }
-  client.loop();
+}
 
-  unsigned long CurrentTime = millis();
+void setup_flare(){
+  Flare::onIncommingPacket(readPacket);
+}
+
+void setup() {
+  pinMode(D8,OUTPUT);
+  Serial.begin(9600);
+  setup_wifi();
+  setup_flare();
   
-  if ((CurrentTime - LastMeasureTime) >= Interval)
-  {
-    pingBroker(); 
-    LastMeasureTime = CurrentTime;
-  }
-  // delay(700);
+  // client.setServer(mqtt_server, mqtt_port);
+  // client.setCallback(callback);
+  // blink();
+  // Lifecycle::add(2000,&pingBroker);
+  // WiFiEventHandler ok;
+
+
+}
+
+
+
+void loop() {
+  // if (!client.connected()) {
+  //   reconnect();
+  // }
+  // client.loop();
+  // Lifecycle::loop();
+  Flare::loop();
+ 
 }
 
 // #include <ESP8266WiFi.h>
 // #include <WiFiUdp.h>
 // #include <ArduinoJson.h>
+
 
 // const char* ssid     = "<YOURSSID>";
 // const char* password = "<YOURPASSWORD>";
@@ -160,6 +181,7 @@ void loop() {
 //       udp.read(buffer, packetSize);
 //       buffer[packetSize] = '\0';
 //       Serial.println(buffer);
+
 //       udp.beginPacket(udp.remoteIP(), udp.remotePort());
 //       char output[128];
 

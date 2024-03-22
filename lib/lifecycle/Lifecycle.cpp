@@ -1,30 +1,19 @@
 #include "Lifecycle.h"
 #include <ESP8266WiFi.h>
+#include <vector>
 
-
-std::map<unsigned long, void(*)()> Lifecycle::array_lifecycle;
-
-unsigned long Lifecycle::last_time = 0;
-
-Lifecycle::Lifecycle(){
-
-};
+std::vector<Event> Lifecycle::events ;
 
 void Lifecycle::loop(){
- 
-    if ((CurrentTime - LastMeasureTime) >= Interval)
-    {
-        pingBroker(); 
-        LastMeasureTime = CurrentTime;
-    }
-    for(auto itr = Lifecycle::array_lifecycle.begin(); itr != Lifecycle::array_lifecycle.end(); ++itr){
-        unsigned long CurrenTime = millis();
-        if((CurrenTime - Lifecycle::last_time) >= itr->first){
-            itr->second();
+    for(Event &event : events){
+        unsigned long currentTime = millis();
+        if((currentTime - event.elapsedTime) >= event.delay){
+            event.fn();
+            event.elapsedTime = currentTime;
         }
     }
 };
 
 void Lifecycle::add(unsigned long delay,void(*callback)()){
-    Lifecycle::array_lifecycle.insert({delay,callback});
+    events.push_back({delay,millis(),callback});
 }

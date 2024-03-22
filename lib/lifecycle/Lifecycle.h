@@ -1,22 +1,19 @@
 #ifndef LIFECYCLE_H
 #define LIFECYCLE_H
-#include <map>
-#include <iostream>
-using namespace std; 
+#include <vector>
 
-struct Element {
-    int value;
-    void (*function)();
+struct Event {
+  unsigned int delay;
+  unsigned int elapsedTime;
+  void (*fn)();
 };
 
 class Lifecycle {
     public: 
-        Lifecycle();
         static void loop();
         static void add(unsigned long delay,void(*callback)());
     private: 
-        static std::map<unsigned long,void(*)()> array_lifecycle;
-        static unsigned long last_time;
+        static std::vector<Event> events;
     };
 
 #endif
