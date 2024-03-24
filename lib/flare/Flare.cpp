@@ -24,6 +24,18 @@ void Flare::loop()
         if (incomingPacketHandler)
         {
             incomingPacketHandler(buffer,server.remoteIP());
+            char msg[255];
+            String test = "ok";
+            test.toCharArray(msg,255);
+            Serial.println(server.remotePort());
+            int sucess = server.beginPacketMulticast(multicast_ip,multicast_port,WiFi.localIP());
+            Serial.print("Success: ");
+            Serial.println(sucess);
+            server.write(msg);
+            int sucessbis = server.endPacket();
+            Serial.print("Success send: ");
+            Serial.println(sucessbis);
+            
         }
     }
 }

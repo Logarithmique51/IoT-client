@@ -9,7 +9,6 @@ PubSubClient Mqtt::client;
 std::vector<TopicHandler> Mqtt::topicListHandler;
 
 void Mqtt::ping(){
-  
   char output[128];
   JsonDocument descriptor;
   descriptor["mac"] = WiFi.macAddress();
@@ -19,7 +18,7 @@ void Mqtt::ping(){
   descriptor["id"] = system_get_chip_id();
   serializeJson(descriptor, output);
   client.publish("limitlesslogic/ping",output);
- }
+}
 
 void Mqtt::on(const char* topic,std::function<void(byte* payload)> callback){
     topicListHandler.push_back({topic,callback});
@@ -34,19 +33,18 @@ void Mqtt::callBackHandler(char* topic, byte* payload, unsigned int length){
 }
 
 void Mqtt::listen(IPAddress ipBroker){
-    client.setClient(wifiClient);
-    client.setServer(ipBroker,1883);
-    client.setCallback(callBackHandler);
-    std::string id = std::to_string(system_get_chip_id());
+    if(!client.connected()){
+        client.setClient(wifiClient);
+        client.setServer(ipBroker,1883);
+        client.setCallback(callBackHandler);
+        std::string id = std::to_string(system_get_chip_id());
 
-    const bool isSuccess = client.connect(id.c_str(),"LIMITLESSLOGIC","AZLIMIT51100");
-    if(isSuccess){
-        Lifecycle::add(2000,ping);
-        for(TopicHandler &topicHandler : topicListHandler){
-            const bool isSuccessSubscribe = client.subscribe(topicHandler.topic);
-            Serial.print(topicHandler.topic);
-            Serial.print(" => ");
-            Serial.println(isSuccessSubscribe);
+        const bool isSuccess = client.connect(id.c_str(),"LIMITLESSLOGIC","AZLIMIT51100");
+        if(isSuccess){
+            Lifecycle::add(2000,ping);
+            for(TopicHandler &topicHandler : topicListHandler){
+                const bool isSuccessSubscribe = client.subscribe(topicHandler.topic);
+            }
         }
     }
 
