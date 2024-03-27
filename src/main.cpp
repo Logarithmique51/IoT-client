@@ -5,7 +5,7 @@
 #include <Flare.h>
 #include <Mqtt.h>
 
-const char* ssid = "Freebox44 2.4GHZ";
+const char* ssid = "Iphone";
 const char* password = "noel2022";
 
 WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
